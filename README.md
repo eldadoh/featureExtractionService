@@ -1,182 +1,253 @@
-#  Feature Detection API Service
+# Feature Detection API Service
 
-Production-ready, high-performance API for SIFT feature detection in images with Redis caching.
+A production-ready, scalable FastAPI service for detecting SIFT features in images with Redis caching.
 
-[![Docker](https://img.shields.io/badge/Docker-20.10%2B-blue)](https://www.docker.com/)
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com/)
-[![Redis](https://img.shields.io/badge/Redis-7.2-red)](https://redis.io/)
+## Quick Start
 
-##  Features
+### Prerequisites
+- Docker & Docker Compose
+- Python 3.11+ (for local development)
 
--  **Async Processing**: Handles 100+ concurrent requests/second
--  **Intelligent Caching**: Redis-based result caching (sub-20ms cache hits)
--  **SIFT Algorithm**: Robust keypoint and descriptor extraction
--  **Production Ready**: Docker, health checks, structured logging
--  **Error Handling**: Comprehensive validation and error messages
--  **Scalable**: Horizontal and vertical scaling support
-- 🧪 **Well Tested**: Unit, integration, and load tests
-- **SOLID Principles**: Clean architecture, dependency injection
-
-##  Quick Start
+### Run with Docker Compose
 
 ```bash
-# Start services
+# Start all services
 docker-compose up -d
 
-# Check health
+# Check service health
 curl http://localhost:8000/health
 
-# Detect features
+# Detect features in an image
 curl -X POST http://localhost:8000/api/v1/features/detect \
-  -F "image=@data/images/lena_color_256.tif"
+  -F "image=@path/to/your/image.jpg"
 
-# Optional: Launch web dashboard
+# View API documentation
+open http://localhost:8000/docs
+```
+
+### Run Demo
+
+```bash
+# Activate virtual environment
+python -m venv venv
+source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+
+# Install dependencies
+pip install -r requirements-dev.txt
+
+# Run API demo
+python tools/demo_api.py --n_images 3 --runs 2
+
+# Run Streamlit dashboard
 streamlit run tools/streamlit_app.py
 ```
 
-## 📚 Documentation
+### Stop Services
 
-- **[Installation Guide](docs/INSTALLATION.md)** - Setup for production and development
-- **[Deployment Guide](docs/deployment.md)** - How to run, manage, and monitor
-- **[Architecture](docs/architecture.html)** - System design and data flow
-- **[Optimization](docs/optimization.md)** - Performance, costs, and scaling
-- **[Logging Strategy](docs/logging_strategy.md)** - Logging best practices
-- **[Docker Compose Explained](docs/DOCKER_COMPOSE_EXPLAINED.md)** - Uploads folder & logging config
-- **[Development Tools](tools/README.md)** - Demo script & Streamlit dashboard
-- **[Project Summary](docs/PROJECT_SUMMARY.md)** - Complete overview
-- **[API Docs](http://localhost:8000/docs)** - Interactive Swagger UI
+```bash
+docker-compose down
+```
 
 ## Architecture
 
+### System Overview
+
 ```
-Client → FastAPI (4 workers) → Feature Detector (SIFT)
-                ↓
-           Redis Cache (512MB, 1h TTL)
-                ↓
-         Structured Logs (JSON)
+┌─────────────────┐
+│   Client        │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────┐
+│  FastAPI        │◄─────┤  Redis       │
+│  (4 Workers)    │      │  Cache       │
+└────────┬────────┘      └──────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ SIFT Feature    │
+│ Detector        │
+└─────────────────┘
 ```
 
-**Performance:**
-- Cache Hit: 5-20ms
-- Cache Miss: 300-500ms
-- Throughput: 100+ req/s (4 workers, 80% cache hit)
+### Key Components
+
+- **FastAPI Service**: Async API with 4 Uvicorn workers for concurrent request handling
+- **Redis Cache**: In-memory caching with LRU eviction, 1-hour TTL
+- **Feature Detector**: OpenCV SIFT with Non-Local Means Denoising
+- **Thread Pool**: Offloads CPU-bound feature detection from async event loop
+
+### Data Flow
+
+1. Client uploads image → API validates format/size
+2. API generates SHA256 hash → checks Redis cache
+3. **Cache Hit**: Returns cached results (< 10ms)
+4. **Cache Miss**: 
+   - Detects features using SIFT (500-2000ms)
+   - Caches result in Redis
+   - Returns response
 
 ## Technology Stack
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| API Framework | FastAPI + Uvicorn | Async HTTP server |
-| Caching | Redis 7.2 | Result caching |
-| Image Processing | OpenCV 4.12 | SIFT feature detection |
-| Validation | Pydantic | Request/response schemas |
-| Logging | Structlog | JSON structured logs |
-| Containerization | Docker + Compose | Deployment |
-| Testing | Pytest + Locust | Unit/integration/load tests |
+### Core Technologies
+- **FastAPI** - Async web framework
+- **Uvicorn** - ASGI server with multiple workers
+- **Redis** - In-memory cache
+- **OpenCV** - SIFT feature detection
+- **Pydantic** - Data validation
 
-##  Project Structure
+### Development Tools
+- **pytest** - Testing framework
+- **Streamlit** - Interactive dashboard
+- **Docker & Docker Compose** - Containerization
+- **structlog** - Structured logging
+
+### Python Libraries
+```
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+redis==5.2.1
+opencv-python==4.10.0.84
+pydantic==2.10.3
+pydantic-settings==2.6.1
+structlog==24.4.0
+```
+
+## Project Structure
 
 ```
 voyage81_features_api_service/
-├── api/              # FastAPI routes and middleware
-├── core/             # Configuration and logging
-├── services/         # Business logic (cache, image, feature)
-├── models/           # Pydantic models
-├── tests/            # Unit, integration, and load tests
-├── docs/             # Comprehensive documentation
-├── data/             # Sample images and uploads
-└── _task/            # Original feature_detector.py
+├── api/                          # API Layer
+│   ├── main.py                   # FastAPI application
+│   ├── dependencies.py           # Dependency injection
+│   ├── middleware.py             # Request logging & error handling
+│   └── routes/
+│       ├── features.py           # Feature detection endpoint
+│       └── health.py             # Health check endpoints
+├── core/                         # Core Configuration
+│   ├── config.py                 # Settings management
+│   ├── exceptions.py             # Custom exceptions
+│   └── logging_config.py         # Structured logging setup
+├── services/                     # Business Logic
+│   ├── cache_service.py          # Redis cache operations
+│   ├── feature_detector.py       # SIFT feature detection
+│   ├── feature_service.py        # Feature detection orchestration
+│   └── image_service.py          # Image validation & processing
+├── models/                       # Data Models
+│   └── responses.py              # Pydantic response models
+├── tests/                        # Test Suite
+│   ├── test_api.py               # API integration tests
+│   └── test_feature_detector.py  # Unit tests
+├── tools/                        # Development Tools
+│   ├── demo_api.py               # CLI demo script
+│   └── streamlit_app.py          # Interactive dashboard
+├── data/                         # Data Storage
+│   └── images/                   # Sample images
+├── docker-compose.yml            # Docker orchestration
+├── Dockerfile                    # API service container
+├── requirements.txt              # Production dependencies
+└── requirements-dev.txt          # Development dependencies
 ```
 
-## 🧪 Testing
+## Testing
+
+### Run All Tests
 
 ```bash
-# Unit tests
-docker-compose exec api pytest tests/unit -v
+# Activate virtual environment
+source venv/bin/activate
 
-# Integration tests
-docker-compose exec api pytest tests/integration -v
+# Run tests
+pytest tests/ -v
 
-# Load tests
-locust -f tests/load/test_load.py --host=http://localhost:8000
+# Run with coverage
+pytest tests/ --cov=. --cov-report=html
 ```
 
-##  Monitoring
+### Test Structure
 
-```bash
-# View logs
-docker-compose logs -f api
+**Unit Tests** (`test_feature_detector.py`)
+- Detector initialization
+- Thread pool executor validation
+- Feature detection on sample images
 
-# Check Redis stats
-docker exec -it feature-api-redis redis-cli INFO stats
+**Integration Tests** (`test_api.py`)
+- Health endpoint validation
+- Feature detection with real images
+- End-to-end API workflow
 
-# Health check
-curl http://localhost:8000/health | jq .
+### Expected Output
+
+```
+tests/test_api.py::TestAPI::test_health_endpoint PASSED           [ 20%]
+tests/test_api.py::TestAPI::test_detect_endpoint PASSED           [ 40%]
+tests/test_feature_detector.py::...::test_detector_initialization PASSED [ 60%]
+tests/test_feature_detector.py::...::test_detector_has_executor PASSED   [ 80%]
+tests/test_feature_detector.py::...::test_detect_on_image_file PASSED    [100%]
+
+============================== 5 passed in 48.22s ==============================
 ```
 
-##  Configuration
+## Configuration
 
-Edit `.env` or set environment variables:
+### Environment Variables
+
+Configure the service by setting environment variables or creating a `.env` file:
 
 ```bash
-# Redis
+# Redis Configuration
 REDIS_HOST=redis
 REDIS_PORT=6379
-CACHE_TTL=3600
+REDIS_DB=0
+REDIS_MAX_CONNECTIONS=50
 
-# API
+# Cache Configuration
+CACHE_TTL=3600
+CACHE_ENABLED=true
+
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
 API_WORKERS=4
+
+# Image Processing
 MAX_IMAGE_SIZE_MB=10
+UPLOAD_DIR=/app/data/uploads
 
 # Logging
 LOG_LEVEL=INFO
 LOG_FORMAT=json
+
+# Application
+APP_NAME=Feature Detection API
+APP_VERSION=1.0.0
+ENVIRONMENT=production
 ```
 
-##  Scaling
+### Configuration Details
 
-### Horizontal Scaling
-```bash
-docker-compose up -d --scale api=8
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REDIS_HOST` | `redis` | Redis server hostname |
+| `REDIS_PORT` | `6379` | Redis server port |
+| `CACHE_TTL` | `3600` | Cache time-to-live (seconds) |
+| `API_WORKERS` | `4` | Number of Uvicorn workers |
+| `MAX_IMAGE_SIZE_MB` | `10` | Maximum image size |
+| `LOG_LEVEL` | `INFO` | Logging level (DEBUG/INFO/WARNING/ERROR) |
 
-### Production Deployment
-See [docs/deployment.md](docs/deployment.md) for Kubernetes, AWS, GCP deployment guides.
+### Docker Compose Configuration
 
-##  Performance
+The `docker-compose.yml` defines two services:
 
-| Scenario | Latency | Throughput |
-|----------|---------|------------|
-| Cache Hit | ~12ms | 300+ req/s |
-| Cache Miss | ~380ms | 40+ req/s |
-| Mixed (80% hit) | ~85ms | 250+ req/s |
+- **api**: FastAPI service with 4 workers
+- **redis**: Redis cache with persistence
 
-## 🏆 Best Practices Implemented
-
- **SOLID Principles**: Dependency inversion, single responsibility  
- **Type Hints**: Full type safety throughout codebase  
- **Async/Await**: Non-blocking I/O for high concurrency  
- **Structured Logging**: JSON logs with correlation IDs  
- **Error Handling**: Custom exceptions with proper HTTP codes  
- **Input Validation**: Pydantic schemas for requests/responses  
- **Caching Strategy**: Content-based hashing with LRU eviction  
- **Health Checks**: Kubernetes-compatible probes  
- **Security**: Non-root user, input validation, size limits  
- **Testing**: Unit, integration, and load tests  
-
-## 🤝 Contributing
-
-This is an interview project demonstrating MLOps best practices.
-
-##  License
-
-MIT License
-
-## 👤 Author
-
-Senior MLOps Engineer Candidate
+Volumes:
+- `./data:/app/data` - Image storage
+- `redis_data:/data` - Redis persistence
 
 ---
 
-**Built with following production-grade practices and SOLID principles**
+**API Documentation**: http://localhost:8000/docs  
+**Health Check**: http://localhost:8000/health
 

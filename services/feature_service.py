@@ -1,13 +1,5 @@
 """
-Feature detection orchestration service.
-Coordinates feature detector, cache, and image processing.
-
-Features:
-- Async feature detection
-- Automatic caching
-- Performance monitoring
-- Error handling
-- Request deduplication
+Feature detection service.
 
 Example Usage:
     service = FeatureService(feature_detector, cache, image_service, settings)

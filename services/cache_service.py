@@ -1,13 +1,5 @@
 """
 Redis cache service with async support.
-Implements caching interface with fault tolerance.
-
-Features:
-- Async Redis operations
-- Connection pooling
-- Automatic serialization/deserialization
-- Graceful degradation on cache failures
-- TTL management
 
 Example Usage:
     cache = RedisCacheService(settings)

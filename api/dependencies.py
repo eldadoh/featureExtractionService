@@ -43,7 +43,6 @@ async def get_feature_detector() -> FeatureDetector:
         logger.info("Initializing FeatureDetector")
         _feature_detector = FeatureDetector()
         
-        # Warmup in background (already done in lifespan)
         if not _feature_detector.ready:
             logger.info("Warming up FeatureDetector")
             await _feature_detector.warmup()

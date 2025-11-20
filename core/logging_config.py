@@ -1,6 +1,5 @@
 """
 Structured logging configuration using structlog.
-Provides consistent, machine-readable logs with metadata.
 
 Example Usage:
     from core.logging_config import get_logger
@@ -21,7 +20,6 @@ Output (JSON):
 
 import logging
 import sys
-from typing import Any
 
 import structlog
 from structlog.types import Processor
@@ -35,8 +33,6 @@ def configure_logging() -> None:
     
     Sets up:
     - JSON formatting for production
-    - Console formatting for development
-    - Consistent timestamp format
     - Exception formatting
     - Log level filtering
     """

@@ -23,26 +23,7 @@ router = APIRouter(prefix="/api/v1/features", tags=["Features"])
     response_model=FeatureDetectionResponse,
     status_code=status.HTTP_200_OK,
     summary="Detect Image Features",
-    description="""
-    Detect SIFT features in an uploaded image.
-    
-    **Process:**
-    1. Upload image (max 10MB)
-    2. Validate image format and size
-    3. Check cache for existing result
-    4. If cache miss, run SIFT feature detection
-    5. Cache result for 1 hour
-    6. Return keypoints count and descriptors
-    
-    **Supported Formats:** JPG, PNG, BMP, TIF/TIFF
-    
-    **Caching:** Results are cached based on image content (SHA256 hash).
-    Same image will return cached result instantly.
-    
-    **Performance:**
-    - Cache hit: ~5-20ms
-    - Cache miss: ~300-500ms (depends on image size/complexity)
-    """,
+    description="""Detect features in an uploaded image""",
     responses={
         200: {
             "description": "Successful feature detection",
@@ -113,7 +94,7 @@ async def detect_features(
     request_id: str = Depends(get_request_id)
 ) -> FeatureDetectionResponse:
     """
-    Detect SIFT features in uploaded image.
+    Detect features in uploaded image.
     
     Args:
         image: Uploaded image file

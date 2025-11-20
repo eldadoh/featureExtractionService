@@ -120,7 +120,7 @@ class APIDemo:
             print(f"\nPerformance:")
             print(f"   Cache Miss Avg: {avg_miss:6.1f}ms")
             print(f"   Cache Hit Avg:  {avg_hit:6.1f}ms")
-            print(f"   Speedup: {speedup:.1f}x faster with cache!")
+            print(f"   Speedup: {speedup:.1f}x")
         
         print(f"\n{'=' * 80}\n")
     

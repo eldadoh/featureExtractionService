@@ -2,7 +2,6 @@
 Pydantic models for request/response validation.
 """
 
-from models.requests import FeatureDetectionRequest
 from models.responses import (
     FeatureDetectionResponse,
     ErrorResponse,
@@ -10,7 +9,6 @@ from models.responses import (
 )
 
 __all__ = [
-    "FeatureDetectionRequest",
     "FeatureDetectionResponse",
     "ErrorResponse",
     "HealthResponse",

@@ -189,7 +189,6 @@ with tab2:
                     
                     # Final update
                     progress_bar.progress(1.0)
-                    status_text.text(f"Completed {total_operations} operations!")
                     output_placeholder.code(''.join(output_lines), language='text')
                     
                     if process.returncode != 0:

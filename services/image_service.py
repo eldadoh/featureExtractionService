@@ -2,13 +2,6 @@
 Image validation and processing service.
 Handles image file validation, size checks, and format verification.
 
-Features:
-- Async file operations
-- Size validation
-- Format validation
-- Image hashing for cache keys
-- Secure file handling
-
 Example Usage:
     image_service = ImageService(settings)
     validated_path = await image_service.validate_and_save(upload_file)

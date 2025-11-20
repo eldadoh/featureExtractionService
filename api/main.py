@@ -1,14 +1,6 @@
 """
 FastAPI application entry point.
 Configures routes, middleware, exception handlers, and lifecycle events.
-
-Features:
-    - Async startup/shutdown
-    - Request logging middleware
-    - Exception handling
-    - API documentation (OpenAPI/Swagger)
-    - CORS support
-    - Health checks
 """
 
 from contextlib import asynccontextmanager
@@ -93,39 +85,7 @@ async def lifespan(app: FastAPI):
 # Create FastAPI application
 app = FastAPI(
     title=settings.app_name,
-    description="""
-    ## Feature Detection API
-    
-    High-performance, production-ready API for SIFT feature detection in images.
-    
-    ### Features
-    - **Async Processing**: Handles concurrent requests efficiently
-    - **Intelligent Caching**: Redis-based result caching (1-hour TTL)
-    - **SIFT Algorithm**: Robust keypoint and descriptor extraction
-    - **Image Preprocessing**: Non-local means denoising
-    - **Fast Response**: Sub-second processing for most images
-    - **Error Handling**: Comprehensive validation and error messages
-    - **Structured Logging**: JSON logs with correlation IDs
-    - **Production Ready**: Docker, health checks, monitoring
-    
-    ### Supported Formats
-    JPG, JPEG, PNG, BMP, TIF, TIFF
-    
-    ### Rate Limits
-    No rate limits currently configured (can be added)
-    
-    ### Caching Strategy
-    Results are cached based on image content hash (SHA256).
-    Identical images return cached results instantly (~5-20ms).
-    
-    ### Performance
-    - **Cache Hit**: 5-20ms
-    - **Cache Miss**: 300-500ms (varies by image complexity)
-    - **Throughput**: 100+ req/s with 4 workers
-    
-    ### Authentication
-    None required (can be added via middleware)
-    """,
+    description="""Feature Detection API""",
     version=settings.app_version,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -136,7 +96,7 @@ app = FastAPI(
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -190,6 +150,6 @@ if __name__ == "__main__":
         port=settings.api_port,
         workers=settings.api_workers,
         log_level=settings.log_level.lower(),
-        access_log=False  # We use our own logging middleware
+        access_log=False
     )
 
