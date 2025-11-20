@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # Redis Cache Service
+  redis:
+    image: redis:7.2-alpine
+    container_name: feature-api-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+      --appendonly yes
+      --appendfsync everysec
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - feature-api-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Feature Detection API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: feature-api-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Redis Configuration
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_MAX_CONNECTIONS=50
+      
+      # Cache Configuration
+      - CACHE_TTL=3600
+      - CACHE_ENABLED=true
+      
+      # API Configuration
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_WORKERS=4
+      
+      # Feature Detector Configuration
+      - FEATURE_DETECTOR_WORKERS=4
+      - WARMUP_TIMEOUT=10
+      
+      # Image Configuration
+      - MAX_IMAGE_SIZE_MB=10
+      - UPLOAD_DIR=/app/data/uploads
+      
+      # Logging Configuration
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      
+      # Application Metadata
+      - APP_NAME=Feature Detection API
+      - APP_VERSION=1.0.0
+      - ENVIRONMENT=production
+    volumes:
+      - ./data:/app/data
+      - uploads:/app/data/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health/ready')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    networks:
+      - feature-api-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=feature-api"
+
+volumes:
+  redis_data:
+    driver: local
+  uploads:
+    driver: local
+
+networks:
+  feature-api-network:
+    driver: bridge
+

@@ -1,0 +1,19 @@
+-r requirements.txt
+
+# Async HTTP Client
+httpx==0.27.2
+
+# Testing Framework
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+
+# Load Testing
+locust==2.32.2
+
+# Test Data Generation
+faker==30.8.2
+
+# Interactive Dashboard
+streamlit==1.39.0
+

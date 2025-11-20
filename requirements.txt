@@ -1,0 +1,23 @@
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.31.0
+python-multipart==0.0.9
+
+# Async Redis Client
+redis[hiredis]==5.1.1
+
+# Image Processing
+opencv-python==4.12.0.88
+numpy==2.2.6
+Pillow==10.4.0
+
+# Validation & Settings
+pydantic==2.9.2
+pydantic-settings==2.5.2
+
+# Async File I/O
+aiofiles==24.1.0
+
+# Logging & Configuration
+python-dotenv==1.0.1
+structlog==24.4.0
