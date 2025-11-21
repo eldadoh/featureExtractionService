@@ -106,6 +106,8 @@ features_api_service/
 ## Testing
 
 # Run tests
+
+```
 pytest tests/ -v
 ```
 
