@@ -67,7 +67,7 @@ docker-compose down -v
 
 
 
-## Project Structure
+### Project Structure
 
 ```
 features_api_service/
@@ -103,15 +103,13 @@ features_api_service/
 └── requirements-dev.txt          # Development dependencies
 ```
 
-## Testing
-
-# Run tests
+### Testing
 
 ```
 pytest tests/ -v
 ```
 
-## Configuration
+### Configuration
 
 ```bash
 # Redis Configuration
